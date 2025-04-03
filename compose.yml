@@ -1,0 +1,33 @@
+services:
+  granary:
+    pull_policy: build
+    build:
+      context: .
+    image: granary:latest
+    container_name: granary
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "$HOST_API_PORT:$API_PORT"
+    environment:
+      - API_PORT=$API_PORT
+      - DB_CONNECTION_URL=$DB_CONNECTION_URL
+      - PG_USER=$PG_USER
+      - PG_PASS=$PG_PASS
+  postgres:
+    image: postgres:17.0
+    restart: always
+    container_name: granary-db
+    ports:
+      - "$HOST_PG_PORT:$PG_PORT"
+    environment:
+      - POSTGRES_DB=$PG_DB
+      - POSTGRES_USER=$PG_USER
+      - POSTGRES_PASSWORD=$PG_PASS
+      - PGPORT=$PG_PORT
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $PG_DB -U $PG_USER"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
