@@ -1,4 +1,4 @@
-package org.granary;
+package org.granary.server;
 
 public class GranaryTest {
 }
