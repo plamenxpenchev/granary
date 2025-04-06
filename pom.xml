@@ -12,15 +12,66 @@
 
     <properties>
         <revision>0.0.1-SNAPSHOT</revision>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+
+        <slf4j.version>2.0.17</slf4j.version>
+        <postgresql.jdbc.version>42.7.5</postgresql.jdbc.version>
+        <commons.dbcp.version>2.13.0</commons.dbcp.version>
     </properties>
 
-    <dependencies>
-    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <!-- Declare versions of granary project modules -->
+            <dependency>
+                <groupId>org.granary</groupId>
+                <artifactId>annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.granary</groupId>
+                <artifactId>properties</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.granary</groupId>
+                <artifactId>persistence</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.granary</groupId>
+                <artifactId>server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- Declare versions of third-party dependencies -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.jdbc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-dbcp2</artifactId>
+                <version>${commons.dbcp.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <modules>
+        <module>annotations</module>
+        <module>properties</module>
         <module>persistence</module>
         <module>server</module>
         <module>granary</module>

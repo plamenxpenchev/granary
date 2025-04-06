@@ -1,0 +1,6 @@
+granary.db.url=jdbc:postgresql://granary-db:5432/postgres
+granary.db.user=admin
+granary.db.pass=pass
+granary.db.connection.pool.max.total=8
+granary.db.connection.pool.max.idle=8
+granary.db.connection.pool.min.idle=0
