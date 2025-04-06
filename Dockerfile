@@ -1,8 +1,10 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build-image
 ENV GRANARY=/usr/src/granary-build
 WORKDIR $GRANARY
+COPY annotations/ $GRANARY/annotations/
 COPY granary/ $GRANARY/granary/
 COPY persistence/ $GRANARY/persistence/
+COPY properties/ $GRANARY/properties/
 COPY server/ $GRANARY/server/
 COPY pom.xml $GRANARY/
 SHELL ["/bin/bash", "-c"]

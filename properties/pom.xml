@@ -10,15 +10,8 @@
     </parent>
 
     <groupId>org.granary</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>properties</artifactId>
     <packaging>jar</packaging>
 
-    <name>Server</name>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.granary</groupId>
-            <artifactId>persistence</artifactId>
-        </dependency>
-    </dependencies>
+    <name>Properties</name>
 </project>
