@@ -4,9 +4,11 @@ import org.granary.properties.exception.PropertyException;
 import org.granary.properties.exception.PropertyNotFoundException;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class Properties {
@@ -56,13 +58,12 @@ public class Properties {
             throw new PropertyException("Property key cannot be empty.");
         }
         String key = property.toString();
-        URL prsResource = Properties.class.getClassLoader().getResource(PRS_NAME);
-        if (prsResource == null) {
-            throw new PropertyException(String.format("File '%s' not found.", PRS_NAME));
-        }
-        try (BufferedReader br = new BufferedReader(new FileReader(prsResource.getFile()))) {
+        try (
+                InputStream is = Properties.class.getClassLoader().getResourceAsStream(PRS_NAME);
+                Reader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+                Reader br = new BufferedReader(isr)
+        ) {
             int next;
-//            char nextChar;
             String keyRead = "";
             boolean readingKey = true;
 
@@ -71,7 +72,6 @@ public class Properties {
                 if (next < 0) {
                     break;
                 }
-//                nextChar = (char) next;
                 switch (next) {
                     case '\n':
                         readingKey = true;
@@ -97,11 +97,7 @@ public class Properties {
         }
     }
 
-    public static void wipeArray(char[] array) {
-        Arrays.fill(array, '0'); // clear heap values
-    }
-
-    private static char[] getSensitiveCharArrayFromLine(BufferedReader br, String key) throws PropertyException {
+    private static char[] getSensitiveCharArrayFromLine(Reader br, String key) throws PropertyException {
         char[] sensitiveArr = new char[VALUE_CHAR_LENGTH_INCREMENT];
         int charactersProcessed = 0;
         try {
@@ -142,5 +138,9 @@ public class Properties {
         }
         wipeArray(sensitiveArr);
         return returnArr;
+    }
+
+    public static void wipeArray(char[] array) {
+        Arrays.fill(array, '0'); // clear heap values
     }
 }
