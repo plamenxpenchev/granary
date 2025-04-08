@@ -44,12 +44,15 @@ public class ConnectionPoolImpl implements ConnectionPool {
      */
     private boolean initializeJDBCDriver() {
         if (JDBC_DRIVER.equals(System.getProperty(JDBC_DRIVER_VM_ARG_KEY))) {
+            LOG.info("Successfully loaded JDBC driver class.");
             return true;
         } else {
             try {
                 Class.forName(JDBC_DRIVER);
+                LOG.info("Successfully loaded JDBC driver class.");
                 return true;
             } catch (ClassNotFoundException e) {
+                LOG.error(e.getMessage(), e);
                 return false;
             }
         }
@@ -89,6 +92,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
             }
             return true;
         } catch (PropertyException e) {
+            LOG.error(e.getMessage(), e);
             return false;
         }
     }
