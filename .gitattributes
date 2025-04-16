@@ -1,0 +1,2 @@
+.sops.env binary
+properties/src/main/resources/sops.granary.prs binary
