@@ -1,0 +1,12 @@
+granary.db.url=ENC[AES256_GCM,data:GEZYApuxHgc7M+RUaZzUQV9EBfWpwcurh2ngCV+bG+QOiqEozWQursvAmQ==,iv:TTYRazdwCAfK+A8wBUdqBdPCha1MYX/28B3zByv/Xho=,tag:7UOQQUfkTue6gQoxDV5bDA==,type:str]
+granary.db.user=ENC[AES256_GCM,data:GUk9+HwW,iv:lftrvpKSAW0tuhgUjrYmW4if1Jfvhl9wUY7jg1AStrk=,tag:wDEwUGoL1JoQbmf42gqCmA==,type:str]
+granary.db.pass=ENC[AES256_GCM,data:UniWpsI=,iv:n/phbaLFucc4Eu/xMCwQ4OsstlD8uwR/0Z3rzoDpieY=,tag:N5xSQvjm9zZkScc1+fVvCA==,type:str]
+granary.db.connection.pool.max.total=ENC[AES256_GCM,data:bvY=,iv:AUMUNT1BusiNf3oZ2gvUj5+1dGpFSfXC9xOjJygOVtg=,tag:VXzAOScseddu11yd0q8k7w==,type:str]
+granary.db.connection.pool.max.idle=ENC[AES256_GCM,data:JXM=,iv:/o7r8lrVN6uzkxqFXqJ5EEd2S+Yk/notI4oIMnQL1Qw=,tag:lGDBEadGqCQfvxbr4B1uaQ==,type:str]
+granary.db.connection.pool.min.idle=ENC[AES256_GCM,data:Ag==,iv:4ZF7Q+E3mIuRqTcPYOzm2LT9IsUXNFY38pkiqgcSsBQ=,tag:7UzofIg1H0TgDMZ4mdb8Vw==,type:str]
+sops_age__list_0__map_enc=-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBodkFySE1oRWh5SzI5WEFW\nQTFLS0tsY0lxbVZ2RnNMczNvVFhiTUZJMFRJCmVQYnVUVEJSUTJWVHQ1ZTJwS2pr\nbktXbjIvQVlGeTlQajhNT2d1MUxRR1EKLS0tIEFNM012NS9NNmdRSjNqTG1qZkZV\nU3E3aVBwSlBCNW04VElzc2c4OXZwVVkKs245qxk16gDhZhHd81lmWLj7DuBmERmK\nVAmeT0NK2ADBJ1pYApZ9m7Y8xKWjLyx6sW9nJ7taJnzGG7h4Zr2urw==\n-----END AGE ENCRYPTED FILE-----\n
+sops_age__list_0__map_recipient=age1rajr8hwwvpyg5lm5aspuqsvwmumfz74fmsetpcfqd4qusuj99vwssxgy53
+sops_lastmodified=2025-04-21T11:09:43Z
+sops_mac=ENC[AES256_GCM,data:2kInmLo5a7MROVGkdVJofCENx8DPhbSovV/RLb8KBk1slNJLd6coTdAx3lryF0+EngHrjtCNuP99TO16ZM4wSSChOmq9qcBh5k4ZN6otvXW4bYLhcxkIARISyFuM6GSaKaMybrCpqB2KnxN/1mC55a09u1v9y69oleMh5QtWwtU=,iv:yu7g+slhXDfRjUVbCPw50pShaRFD/SIj9waBKyBKsDA=,tag:7fnK/+Je/xkXpWk09iUHzw==,type:str]
+sops_unencrypted_suffix=_unencrypted
+sops_version=3.10.1
