@@ -1,6 +1,7 @@
-package org.granary.database;
+package org.granary.database.connection;
 
 import org.granary.annotations.GuardedBy;
+import org.granary.database.connection.exception.ConnectionPoolInitializationException;
 import org.granary.properties.Properties;
 
 import org.apache.commons.pool2.ObjectPool;
@@ -16,7 +17,10 @@ import org.granary.properties.exception.PropertyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConnectionPoolImpl implements ConnectionPool {
 
@@ -28,6 +32,14 @@ public class ConnectionPoolImpl implements ConnectionPool {
     private final boolean jdbcDriverInitialized;
     private final boolean connectionPoolInitialized;
 
+    /**
+     * Apache DBCP internally synchronizes concurrent invocations to the pool
+     * via the thread-safety guarantees of the {@link GenericObjectPool} implementation.
+     *
+     * We additionally synchronize on {@code this} here, for the only reason that we wish for
+     * the exposed {@link #getConnection()} and {@link #getTransactionalConnection()}
+     * to also be thread-safe, while keeping the ConnectionPool closeable.
+     */
     @GuardedBy("this")
     private PoolingDataSource<PoolableConnection> connectionPoolingDataSource;
 
@@ -88,8 +100,8 @@ public class ConnectionPoolImpl implements ConnectionPool {
 
             synchronized (this) {
                 connectionPoolingDataSource = new PoolingDataSource<>(connectionPool);
-                LOG.info("Successfully established DB connection pool.");
             }
+            LOG.info("Successfully established DB connection pool.");
             return true;
         } catch (PropertyException e) {
             LOG.error(e.getMessage(), e);
@@ -102,13 +114,37 @@ public class ConnectionPoolImpl implements ConnectionPool {
         synchronized (this) {
             if (connectionPoolingDataSource != null) {
                 connectionPoolingDataSource.close();
+                connectionPoolingDataSource = null;
             }
         }
     }
 
+    @Override
+    public Connection getConnection() throws SQLException {
+        return getConnection(true);
+    }
+
+    @Override
+    public Connection getTransactionalConnection() throws SQLException {
+        return getConnection(false);
+    }
+
+    private Connection getConnection(boolean autoCommit) throws SQLException {
+        Connection connection = null;
+        synchronized (this) {
+            if (connectionPoolingDataSource != null) {
+                connection = connectionPoolingDataSource.getConnection();
+            }
+        }
+        if (connection != null) {
+            connection.setAutoCommit(autoCommit);
+        }
+        return connection;
+    }
+
     public static class ConnectionPoolBuilder {
 
-        public ConnectionPool build() {
+        public ConnectionPool build() throws ConnectionPoolInitializationException {
             ConnectionPoolImpl pool = new ConnectionPoolImpl();
             if (pool.jdbcDriverInitialized && pool.connectionPoolInitialized) {
                 return pool;
@@ -117,7 +153,16 @@ public class ConnectionPoolImpl implements ConnectionPool {
                     pool.close();
                 } catch (SQLException e) {
                 }
-                return null;
+                List<String> initializationFailures = new ArrayList<>();
+                if (!pool.jdbcDriverInitialized) {
+                    initializationFailures.add("JDBC Driver");
+                }
+                if (!pool.connectionPoolInitialized) {
+                    initializationFailures.add("Apache DBCP Connection Pool");
+                }
+                throw new ConnectionPoolInitializationException(
+                        "Error building the ConnectionPool instance, could not instantiate the " +
+                                String.join(", ", initializationFailures));
             }
         }
     }
