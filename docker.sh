@@ -28,6 +28,11 @@ GRANARY_PRS_FILE=${GRANARY_ROOT_DIR}/properties/src/main/resources/granary.prs
 
 export SOPS_AGE_KEY_FILE=$1
 
+if [ ! -f ${SOPS_AGE_KEY_FILE} ]; then
+    echo "${SOPS_AGE_KEY_FILE} not found."
+    exit 1
+fi
+
 sops decrypt --input-type dotenv --output-type dotenv ${SOPS_ENV_FILE} > ${ENV_FILE}
 sops decrypt --input-type dotenv --output-type dotenv ${SOPS_GRANARY_PRS_FILE} > ${GRANARY_PRS_FILE}
 
