@@ -1,7 +1,7 @@
 package org.granary.server;
 
-import org.granary.database.connection.ConnectionPool;
-import org.granary.database.connection.ConnectionPoolImpl;
+import org.granary.database.connection.pool.ConnectionPool;
+import org.granary.database.connection.pool.ConnectionPoolImpl;
 
 import java.sql.Connection;
 

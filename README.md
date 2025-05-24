@@ -39,23 +39,24 @@ sops decrypt --input-type dotenv --output-type dotenv properties/src/main/resour
 
 ## Expected properties
 
-The decrypted `.env` file should contain the relevant environment variables for raising a Postgres container:
+The decrypted `.env` file should contain the relevant environment variables for exposing a port for the Granary application and rasing a Postgres container.
 ```
-HOST_PG_PORT=
 HOST_API_PORT=
+API_PORT=
+HOST_PG_PORT=
+PG_PORT=
 PG_DB=
 PG_USER=
 PG_PASS=
-PG_PORT=
-API_PORT=
-DB_CONNECTION_URL=
 ```
 
 The decrypted `properties/src/main/resources/granary.prs` file should contain the relevant properties for running the Granary application:
 ```
-granary.db.url=
+granary.db.host=
+granary.db.name=
 granary.db.user=
 granary.db.pass=
+granary.db.port=
 granary.db.connection.pool.max.total=
 granary.db.connection.pool.max.idle=
 granary.db.connection.pool.min.idle=

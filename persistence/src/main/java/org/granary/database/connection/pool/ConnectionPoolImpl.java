@@ -1,7 +1,8 @@
-package org.granary.database.connection;
+package org.granary.database.connection.pool;
 
 import org.granary.annotations.GuardedBy;
-import org.granary.database.connection.exception.ConnectionPoolInitializationException;
+import org.granary.annotations.ThreadSafe;
+import org.granary.database.connection.pool.exception.ConnectionPoolInitializationException;
 import org.granary.properties.Properties;
 
 import org.apache.commons.pool2.ObjectPool;
@@ -21,7 +22,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import static java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+
+@ThreadSafe
 public class ConnectionPoolImpl implements ConnectionPool {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectionPoolImpl.class);
@@ -32,15 +38,20 @@ public class ConnectionPoolImpl implements ConnectionPool {
     private final boolean jdbcDriverInitialized;
     private final boolean connectionPoolInitialized;
 
+    private ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
+    private ReadLock readLock = reentrantReadWriteLock.readLock();
+    private WriteLock writeLock = reentrantReadWriteLock.writeLock();
+
     /**
      * Apache DBCP internally synchronizes concurrent invocations to the pool
      * via the thread-safety guarantees of the {@link GenericObjectPool} implementation.
-     *
-     * We additionally synchronize on {@code this} here, for the only reason that we wish for
-     * the exposed {@link #getConnection()} and {@link #getTransactionalConnection()}
-     * to also be thread-safe, while keeping the ConnectionPool closeable.
+     * This allows the usage of only the {@code readLock} when obtaining connections from the pool
+     * (via {@link #getConnection()}, {@link #getTransactionalConnection()}). When closing the data source
+     * (via {@link #close()}) the {@code writeLock} is needed to remain thread-safe.
+     * The builder pattern guarantees thread-safety for obtaining connections during after
+     * the instantiation of the connection pool.
      */
-    @GuardedBy("this")
+    @GuardedBy("reentrantReadWriteLock")
     private PoolingDataSource<PoolableConnection> connectionPoolingDataSource;
 
     private ConnectionPoolImpl() {
@@ -81,7 +92,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
             char[] dbPass = Properties.getSensitiveCharArray(PropertyKey.DB_PASS_KEY);
             ConnectionFactory connectionFactory =
                     new DriverManagerConnectionFactory(
-                            Properties.getString(PropertyKey.DB_URL_KEY),
+                            getJDBCUrl(),
                             Properties.getString(PropertyKey.DB_USER_KEY),
                             dbPass); // array is cloned in constructor implementation
             Properties.wipeArray(dbPass);
@@ -98,9 +109,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
                     new GenericObjectPool<>(poolableConnectionFactory, config);
             poolableConnectionFactory.setPool(connectionPool);
 
-            synchronized (this) {
-                connectionPoolingDataSource = new PoolingDataSource<>(connectionPool);
-            }
+            connectionPoolingDataSource = new PoolingDataSource<>(connectionPool);
             LOG.info("Successfully established DB connection pool.");
             return true;
         } catch (PropertyException e) {
@@ -109,13 +118,24 @@ public class ConnectionPoolImpl implements ConnectionPool {
         }
     }
 
+    public static String getJDBCUrl() throws PropertyException {
+        return String.format(
+                "jdbc:postgresql://%s:%d/%s",
+                Properties.getString(PropertyKey.DB_HOST_KEY),
+                Properties.getInt(PropertyKey.DB_PORT_KEY),
+                Properties.getString(PropertyKey.DB_NAME_KEY));
+    }
+
     @Override
     public void close() throws SQLException {
-        synchronized (this) {
+        writeLock.lock();
+        try {
             if (connectionPoolingDataSource != null) {
                 connectionPoolingDataSource.close();
                 connectionPoolingDataSource = null;
             }
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -131,10 +151,13 @@ public class ConnectionPoolImpl implements ConnectionPool {
 
     private Connection getConnection(boolean autoCommit) throws SQLException {
         Connection connection = null;
-        synchronized (this) {
+        readLock.lock();
+        try {
             if (connectionPoolingDataSource != null) {
                 connection = connectionPoolingDataSource.getConnection();
             }
+        } finally {
+            readLock.unlock();
         }
         if (connection != null) {
             connection.setAutoCommit(autoCommit);
@@ -145,6 +168,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
     public static class ConnectionPoolBuilder {
 
         public ConnectionPool build() throws ConnectionPoolInitializationException {
+
             ConnectionPoolImpl pool = new ConnectionPoolImpl();
             if (pool.jdbcDriverInitialized && pool.connectionPoolInitialized) {
                 return pool;
@@ -153,6 +177,7 @@ public class ConnectionPoolImpl implements ConnectionPool {
                     pool.close();
                 } catch (SQLException e) {
                 }
+
                 List<String> initializationFailures = new ArrayList<>();
                 if (!pool.jdbcDriverInitialized) {
                     initializationFailures.add("JDBC Driver");
