@@ -1,4 +1,4 @@
-package org.granary.database.connection;
+package org.granary.database.connection.pool;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,4 +1,4 @@
-package org.granary.database.connection.exception;
+package org.granary.database.connection.pool.exception;
 
 import java.io.Serial;
 
