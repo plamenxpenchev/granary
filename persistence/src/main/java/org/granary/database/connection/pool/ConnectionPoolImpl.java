@@ -45,11 +45,20 @@ public class ConnectionPoolImpl implements ConnectionPool {
     /**
      * Apache DBCP internally synchronizes concurrent invocations to the pool
      * via the thread-safety guarantees of the {@link GenericObjectPool} implementation.
-     * This allows the usage of only the {@code readLock} when obtaining connections from the pool
-     * (via {@link #getConnection()}, {@link #getTransactionalConnection()}). When closing the data source
-     * (via {@link #close()}) the {@code writeLock} is needed to remain thread-safe.
+     *
      * The builder pattern guarantees thread-safety for obtaining connections during after
      * the instantiation of the connection pool.
+     *
+     * In general, closing the pool does not close the connections that have already been borrowed by the application.
+     * It makes it so that new connections cannot be borrowed. When the connections currently borrowed are closed,
+     * they will attempt to return to the pool, but when that throws, they will handle the exception
+     * by closing the underlying physical JDBC connection.
+     *
+     * Attempting to borrow a new connection from a closed pool throws {@link IllegalStateException}.
+     * From that point of view the handling with read and write locks here can be considered overkill,
+     * but the following is true:
+     *      the exception in that case is not wrapped in a {@link SQLException}
+     *      we want atomicity/null-safety guarantees on accessing this variable
      */
     @GuardedBy("reentrantReadWriteLock")
     private PoolingDataSource<PoolableConnection> connectionPoolingDataSource;
@@ -150,11 +159,13 @@ public class ConnectionPoolImpl implements ConnectionPool {
     }
 
     private Connection getConnection(boolean autoCommit) throws SQLException {
-        Connection connection = null;
+        Connection connection;
         readLock.lock();
         try {
             if (connectionPoolingDataSource != null) {
                 connection = connectionPoolingDataSource.getConnection();
+            } else {
+                throw new SQLException("The JDBC connection pool is closed.");
             }
         } finally {
             readLock.unlock();
