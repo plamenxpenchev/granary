@@ -4,15 +4,22 @@ import org.granary.database.connection.pool.ConnectionPool;
 import org.granary.database.connection.pool.ConnectionPoolImpl;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public class Granary {
     public static void main(String[] args) {
+        Connection connection = null;
         try (ConnectionPool connectionPool = new ConnectionPoolImpl.ConnectionPoolBuilder().build()) {
-            Connection connection = connectionPool.getConnection();
-            connection.close();
+            connection = connectionPool.getConnection();
             System.out.println("Hello World!");
         } catch (Exception e) {
             System.err.println(e.getMessage());
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                System.err.println(e.getMessage());
+            }
         }
     }
 }
