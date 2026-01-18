@@ -18,23 +18,24 @@ public class GranaryTest extends DatabaseTest {
     private static final Logger LOG = LoggerFactory.getLogger(GranaryTest.class);
 
     @Test
-    public void basicTest() throws SQLException {
-        Connection conn = null;
+    public void createTableTest() throws SQLException {
+        Connection trConn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            conn = connectionPool.getConnection();
+            trConn = connectionPool.getTransactionalConnection();
 
-            ps = conn.prepareStatement("CREATE TABLE test_table(test_field_1 VARCHAR(255), test_field_2 INT)");
+            ps = trConn.prepareStatement("CREATE TABLE test_table(test_field_1 VARCHAR(255), test_field_2 INT)");
             ps.executeUpdate();
             ps.close();
 
-            ps = conn.prepareStatement("INSERT INTO test_table(test_field_1, test_field_2) " +
+            ps = trConn.prepareStatement("INSERT INTO test_table(test_field_1, test_field_2) " +
                     "VALUES ('val1', 1), ('val2', 2)");
             ps.executeUpdate();
+            trConn.commit();
             ps.close();
 
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM test_table");
+            ps = trConn.prepareStatement("SELECT COUNT(*) FROM test_table");
             rs = ps.executeQuery();
             int count = 0;
             if (rs.next()) {
@@ -49,8 +50,8 @@ public class GranaryTest extends DatabaseTest {
             if (ps != null) {
                 ps.close();
             }
-            if (conn != null) {
-                conn.close();
+            if (trConn != null) {
+                trConn.close();
             }
         }
     }
