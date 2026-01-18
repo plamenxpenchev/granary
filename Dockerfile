@@ -4,6 +4,7 @@ WORKDIR $GRANARY
 COPY annotations/ $GRANARY/annotations/
 COPY granary/ $GRANARY/granary/
 COPY persistence/ $GRANARY/persistence/
+COPY persistence-test/ $GRANARY/persistence-test/
 COPY properties/ $GRANARY/properties/
 COPY server/ $GRANARY/server/
 COPY pom.xml $GRANARY/
